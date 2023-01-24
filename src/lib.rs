@@ -32,8 +32,58 @@ impl Config {
         })
     }
 }
+#[derive(Debug)]
+struct Map {
+    width: usize,
+    height: usize,
+    map: Vec<Vec<char>>,
+}
+
+impl Map {
+    fn create(file_path: &String) -> Result<Map, Box<dyn Error>> {
+        let contents = fs::read_to_string(file_path)?;
+        let file_lines = contents.lines().collect::<Vec<&str>>();
+        let mut dimensions = file_lines[0].split(' ');
+        let width = dimensions
+            .next()
+            .expect("Error parsing dimensions from file.")
+            .parse::<usize>()
+            .unwrap();
+        let height = dimensions
+            .next()
+            .expect("Error parsing dimensions from file.")
+            .parse::<usize>()
+            .unwrap();
+        let mut map = vec![vec![' '; width]; height];
+        let mut chars: std::str::Chars;
+        for h in 1..height {
+            chars = file_lines[h].chars();
+            for w in 0..width {
+                map[h][w] = chars.next().expect("Error parsing map characters.");
+            }
+        }
+        Ok(Map { width, height, map })
+    }
+    fn size(&self) -> usize {
+        self.width * self.height
+    }
+    fn width(&self) -> usize {
+        self.width
+    }
+    fn height(&self) -> usize {
+        self.height
+    }
+}
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let _map = fs::read_to_string(config.file_path)?;
+    println!("{}", std::env::current_dir().unwrap().display());
+
+    let map = Map::create(&config.file_path)?;
+    //dbg!(&map);
+    for row in 1..map.height() {
+        for column in 0..map.width() {
+            //add print of map
+        }
+    }
     Ok(())
 }
