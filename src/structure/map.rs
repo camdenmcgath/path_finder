@@ -1,55 +1,13 @@
+use crate::structure::{cell::Cell, direction::Direction};
 use crate::Config;
 use std::error::Error;
 use std::fs;
 
 //file contains map and cell structs
-#[derive(Clone)]
-pub enum Direction {
-    Up,
-    Right,
-    Down,
-    Left,
-}
-
-#[derive(Clone)]
-pub struct Cell {
-    pub value: char,
-    pub visited: bool,
-    pub state: (usize, usize),
-    pub prev: Option<(usize, usize)>,
-    pub in_path: bool,
-    pub prev_direction: Option<Direction>,
-}
-impl Cell {
-    pub fn new(
-        value: char,
-        visited: bool,
-        state: (usize, usize),
-        prev: Option<(usize, usize)>,
-        in_path: bool,
-        prev_direction: Option<Direction>,
-    ) -> Cell {
-        Cell {
-            value,
-            visited,
-            state,
-            prev,
-            in_path,
-            prev_direction,
-        }
-    }
-    pub fn set_val(&mut self, val: char) -> () {
-        self.value = val;
-    }
-    pub fn set_state(&mut self, coords: (usize, usize)) -> () {
-        self.state = coords;
-    }
-}
 pub struct Map {
     pub width: usize,
     pub height: usize,
     pub map: Vec<Vec<Cell>>,
-    pub cells_explored: i16,
     pub display_map: Vec<Vec<String>>,
 }
 impl Map {
@@ -67,7 +25,8 @@ impl Map {
             .expect("Error parsing dimensions from file.")
             .parse::<usize>()
             .unwrap();
-        let mut map = vec![vec![Cell::new(' ', false, (0, 0), None, false, None); width]; height];
+        let mut map =
+            vec![vec![Cell::new(' ', (0, 0), None, false, None, usize::MAX); width]; height];
         let mut chars: std::str::Chars;
         //populate map with correct characters and coordinates for each cell
         for h in 0..height {
@@ -77,13 +36,11 @@ impl Map {
                 map[h][w].set_state(((w).try_into().unwrap(), h.try_into().unwrap()));
             }
         }
-        let cells_explored: i16 = 0;
         let display_map = vec![vec![String::from(" "); width * 2]; height * 2];
         Ok(Map {
             width,
             height,
             map,
-            cells_explored,
             display_map,
         })
     }
@@ -102,9 +59,10 @@ impl Map {
                 .join("\n")
         )
     }
-    pub fn set_path(&mut self, params: &Config) -> () {
+    pub fn set_path(&mut self, cell: &Cell, params: &Config) -> () {
         //identify all cells in the solution path
-        let mut path_cell = &mut self.map[params.goal_y][params.goal_x];
+        let (goal_x, goal_y) = cell.state;
+        let mut path_cell = &mut self.map[goal_y][goal_x];
         path_cell.in_path = true;
         while path_cell.state != (params.start_x, params.start_y) {
             if let Some((coordx, coordy)) = path_cell.prev {
@@ -155,6 +113,13 @@ impl Map {
                 .join("\n")
         );
         println!("------------------------");
-        println!("Cells explored: {}", self.cells_explored);
+        println!("Cells explored: {}", self.get_explored_cells());
+    }
+    pub fn get_explored_cells(&self) -> usize {
+        self.map
+            .iter()
+            .flatten()
+            .filter(|cell| cell.cost != usize::MAX)
+            .count()
     }
 }

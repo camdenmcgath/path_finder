@@ -1,76 +1,106 @@
-use crate::map::{Cell, Direction, Map};
+use crate::structure::map;
+use crate::structure::{cell::Cell, direction::Direction, map::Map};
 use crate::Config;
 use std::collections::VecDeque;
 //fil contains logic for breadth first search
-fn is_cell_goal(params: &Config, cell: &Cell) -> bool {
-    (params.goal_x, params.goal_y) == cell.state
+pub fn is_cell_goal(params: &Config, point: &(usize, usize)) -> bool {
+    (params.goal_x, params.goal_y) == *point
 }
 
-fn expand(map: &mut Map, cell: &Cell) -> VecDeque<Cell> {
-    let (state_x, state_y) = cell.state;
-    let mut expanded_cells: VecDeque<Cell> = VecDeque::new();
+pub fn find_prev_direction(
+    map: &Map,
+    origin: &(usize, usize),
+    point: &(usize, usize),
+) -> Option<Direction> {
+    let (origin_x, origin_y) = *origin;
+    let (point_x, point_y) = *point;
+
+    //moved up
+    if origin_y > 0 && point_y == origin_y - 1 {
+        Some(Direction::Down)
+    }
+    //moved right
+    else if origin_x + 1 < map.width && point_x == origin_x + 1 {
+        Some(Direction::Left)
+    }
+    //moved down
+    else if origin_y + 1 < map.height && point_y == origin_y + 1 {
+        Some(Direction::Up)
+    }
+    //moved left
+    else if origin_x > 0 && point_x == origin_x - 1 {
+        Some(Direction::Right)
+    } else {
+        None
+    }
+}
+
+pub fn expand(map: &mut Map, point: &(usize, usize)) -> VecDeque<(usize, usize)> {
+    let (state_x, state_y) = *point;
+    let mut expanded_cells: VecDeque<(usize, usize)> = VecDeque::new();
     //move up
-    if state_y > 1
-        && !map.map[state_y - 1][state_x].visited
+    if state_y > 0
+        //&& map.map[state_y - 1][state_x].cost == usize::MAX
         && map.map[state_y - 1][state_x].value != 'W'
     {
-        map.cells_explored += 1;
-        map.map[state_y - 1][state_x].visited = true;
-        map.map[state_y - 1][state_x].prev = Some(cell.state);
-        map.map[state_y - 1][state_x].prev_direction = Some(Direction::Down);
-        expanded_cells.push_back(map.map[state_y - 1][state_x].clone());
+        //map.map[state_y - 1][state_x].cost = 1;
+        //map.map[state_y - 1][state_x].prev = Some(*point);
+        //map.map[state_y - 1][state_x].prev_direction = Some(Direction::Down);
+        expanded_cells.push_back(map.map[state_y - 1][state_x].state);
     }
     //move right
     if state_x + 1 < map.width
-        && !map.map[state_y][state_x + 1].visited
+        //&& map.map[state_y][state_x + 1].cost == usize::MAX
         && map.map[state_y][state_x + 1].value != 'W'
     {
-        map.cells_explored += 1;
-        map.map[state_y][state_x + 1].visited = true;
-        map.map[state_y][state_x + 1].prev = Some(cell.state);
-        map.map[state_y][state_x + 1].prev_direction = Some(Direction::Left);
-        expanded_cells.push_back(map.map[state_y][state_x + 1].clone());
+        //map.map[state_y][state_x + 1].cost = 1;
+        //map.map[state_y][state_x + 1].prev = Some(*point);
+        //map.map[state_y][state_x + 1].prev_direction = Some(Direction::Left);
+        expanded_cells.push_back(map.map[state_y][state_x + 1].state);
     }
     //move down
     if state_y + 1 < map.height
-        && !map.map[state_y + 1][state_x].visited
+        //&& map.map[state_y + 1][state_x].cost == usize::MAX
         && map.map[state_y + 1][state_x].value != 'W'
     {
-        map.cells_explored += 1;
-        map.map[state_y + 1][state_x].visited = true;
-        map.map[state_y + 1][state_x].prev = Some(cell.state);
-        map.map[state_y + 1][state_x].prev_direction = Some(Direction::Up);
-        expanded_cells.push_back(map.map[state_y + 1][state_x].clone());
+        //map.map[state_y + 1][state_x].cost = 1;
+        //map.map[state_y + 1][state_x].prev = Some(*point);
+        //map.map[state_y + 1][state_x].prev_direction = Some(Direction::Up);
+        expanded_cells.push_back(map.map[state_y + 1][state_x].state);
     }
     //move left
-    if state_x > 1
-        && !map.map[state_y][state_x - 1].visited
+    if state_x > 0
+        //&& map.map[state_y][state_x - 1].cost == usize::MAX
         && map.map[state_y][state_x - 1].value != 'W'
     {
-        map.cells_explored += 1;
-        map.map[state_y][state_x - 1].visited = true;
-        map.map[state_y][state_x - 1].prev = Some(cell.state);
-        map.map[state_y][state_x - 1].prev_direction = Some(Direction::Right);
-        expanded_cells.push_back(map.map[state_y][state_x - 1].clone());
+        //map.map[state_y][state_x - 1].cost = 1;
+        //map.map[state_y][state_x - 1].prev = Some(*point);
+        //map.map[state_y][state_x - 1].prev_direction = Some(Direction::Right);
+        expanded_cells.push_back(map.map[state_y][state_x - 1].state);
     }
     expanded_cells
 }
 
 pub fn breadth_first_search(params: &Config, map: &mut Map) -> Option<Cell> {
     println!("Breadth First Search:\n-----------------------");
-    map.map[params.start_y][params.start_x].visited = true;
-    let mut node = map.map[params.start_y][params.start_x].clone();
-    if is_cell_goal(&params, &node) {
-        return Some(node);
+    let mut point = (params.start_x, params.start_y);
+    if is_cell_goal(&params, &point) {
+        return Some(map.map[params.start_y][params.start_x].clone());
     }
-    let mut expand_cells: VecDeque<Cell> = VecDeque::new();
-    expand_cells.push_back(node);
-    while !expand_cells.is_empty() {
-        node = expand_cells.pop_front()?;
-        for cell in expand(map, &node) {
-            expand_cells.push_back(cell.clone());
-            if is_cell_goal(&params, &cell) {
-                return Some(cell);
+    let mut expand_points: VecDeque<(usize, usize)> = VecDeque::new();
+    map.map[params.start_y][params.start_x].cost = 1;
+    expand_points.push_back(point);
+    while !expand_points.is_empty() {
+        point = expand_points.pop_front()?;
+        for (x, y) in expand(map, &point) {
+            if map.map[y][x].cost != 1 {
+                map.map[y][x].cost = 1;
+                map.map[y][x].prev = Some((point.0, point.1));
+                map.map[y][x].prev_direction = find_prev_direction(&map, &point, &(x, y));
+                expand_points.push_back((x, y));
+            }
+            if is_cell_goal(&params, &(x, y)) {
+                return Some(map.map[y][x].clone());
             }
         }
     }

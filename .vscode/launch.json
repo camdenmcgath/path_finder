@@ -42,8 +42,8 @@
                 "testmap.txt",
                 "1",
                 "2",
-                "5",
-                "5",
+                "11",
+                "18",
                 "-b"
             ],
             "cwd": "${workspaceFolder}"

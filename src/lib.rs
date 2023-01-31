@@ -1,8 +1,8 @@
-use crate::map::Map;
 use searches::breadth_first::breadth_first_search;
 use std::error::Error;
-mod map;
+use structure::map::Map;
 mod searches;
+mod structure;
 //struct for Command Line Arguments
 pub struct Config {
     pub file_path: String,
@@ -41,9 +41,12 @@ impl Config {
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     println!("{}", std::env::current_dir().unwrap().display());
     let mut map = Map::create(&config.file_path)?;
-    breadth_first_search(&config, &mut map);
-    map.set_path(&config);
-    map.print_path();
+    if let Some(cell) = breadth_first_search(&config, &mut map) {
+        map.set_path(&cell, &config);
+        map.print_path();
+    } else {
+        println!("Goal not found...");
+    }
 
     Ok(())
 }

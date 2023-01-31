@@ -8,6 +8,8 @@ use std::process;
 //lib.rs contains the code to run the main part of the program
 //the breadth first search code is found in the searches module
 
+//TODO: efficiency upgrades: remove in path, remove direction field
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let config = Config::build(&args).unwrap_or_else(|err| {
