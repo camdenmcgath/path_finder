@@ -1,5 +1,6 @@
 use crate::structure::{cell::Cell, direction::Direction};
 use crate::Config;
+use std::collections::VecDeque;
 use std::error::Error;
 use std::fs;
 
@@ -44,27 +45,78 @@ impl Map {
             display_map,
         })
     }
-    pub fn print_map(&self) -> () {
-        println!(
-            "{}",
-            self.map
-                .iter()
-                .map(|row| {
-                    row.iter()
-                        .map(|cell| cell.value.to_string())
-                        .collect::<Vec<String>>()
-                        .join(" ")
-                })
-                .collect::<Vec<String>>()
-                .join("\n")
-        )
+    pub fn get(&mut self, point: &(usize, usize)) -> &mut Cell {
+        &mut self.map[point.1][point.0]
     }
-    pub fn set_path(&mut self, cell: &Cell, params: &Config) -> () {
+    pub fn find_prev_direction(
+        &self,
+        origin: &(usize, usize),
+        point: &(usize, usize),
+    ) -> Option<Direction> {
+        let (origin_x, origin_y) = *origin;
+        let (point_x, point_y) = *point;
+
+        //moved up
+        if origin_y > 0 && point_y == origin_y - 1 {
+            Some(Direction::Down)
+        }
+        //moved right
+        else if origin_x + 1 < self.width && point_x == origin_x + 1 {
+            Some(Direction::Left)
+        }
+        //moved down
+        else if origin_y + 1 < self.height && point_y == origin_y + 1 {
+            Some(Direction::Up)
+        }
+        //moved left
+        else if origin_x > 0 && point_x == origin_x - 1 {
+            Some(Direction::Right)
+        } else {
+            None
+        }
+    }
+    pub fn set_cell_costs(&mut self) -> () {
+        self.map.iter_mut().for_each(|row| {
+            row.iter_mut().for_each(|cell| {
+                cell.cost = match cell.value {
+                    'R' => 1,
+                    'f' => 2,
+                    'F' => 4,
+                    'h' => 5,
+                    'r' => 7,
+                    'M' => 10,
+                    _ => usize::MAX,
+                };
+            });
+        });
+    }
+    pub fn expand(&mut self, point: &(usize, usize)) -> VecDeque<(usize, usize)> {
+        let (state_x, state_y) = *point;
+        let mut expanded_cells: VecDeque<(usize, usize)> = VecDeque::new();
+        //move up
+        if state_y > 0 && self.map[state_y - 1][state_x].value != 'W' {
+            expanded_cells.push_back(self.map[state_y - 1][state_x].state);
+        }
+        //move right
+        if state_x + 1 < self.width && self.map[state_y][state_x + 1].value != 'W' {
+            expanded_cells.push_back(self.map[state_y][state_x + 1].state);
+        }
+        //move down
+        if state_y + 1 < self.height && self.map[state_y + 1][state_x].value != 'W' {
+            expanded_cells.push_back(self.map[state_y + 1][state_x].state);
+        }
+        //move left
+        if state_x > 0 && self.map[state_y][state_x - 1].value != 'W' {
+            expanded_cells.push_back(self.map[state_y][state_x - 1].state);
+        }
+        expanded_cells
+    }
+    pub fn set_path(&mut self, point: (usize, usize), params: &Config) -> () {
         //identify all cells in the solution path
-        let (goal_x, goal_y) = cell.state;
+        let (goal_x, goal_y) = point;
         let mut path_cell = &mut self.map[goal_y][goal_x];
         path_cell.in_path = true;
-        while path_cell.state != (params.start_x, params.start_y) {
+        while path_cell.state != params.start {
             if let Some((coordx, coordy)) = path_cell.prev {
                 self.map[coordy][coordx].in_path = true;
                 path_cell = &mut self.map[coordy][coordx];
