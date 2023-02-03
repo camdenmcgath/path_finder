@@ -7,7 +7,8 @@ pub struct Cell {
     pub prev: Option<(usize, usize)>,
     pub in_path: bool,
     pub prev_direction: Option<Direction>,
-    pub cost: usize,
+    pub weight: usize,
+    pub path_cost: usize,
 }
 impl Cell {
     pub fn new(
@@ -16,7 +17,8 @@ impl Cell {
         prev: Option<(usize, usize)>,
         in_path: bool,
         prev_direction: Option<Direction>,
-        cost: usize,
+        weight: usize,
+        path_cost: usize,
     ) -> Cell {
         Cell {
             value,
@@ -24,7 +26,8 @@ impl Cell {
             prev,
             in_path,
             prev_direction,
-            cost,
+            weight,
+            path_cost,
         }
     }
     pub fn set_val(&mut self, val: char) -> () {

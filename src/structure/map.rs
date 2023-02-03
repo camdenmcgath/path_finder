@@ -10,6 +10,9 @@ pub struct Map {
     pub height: usize,
     pub map: Vec<Vec<Cell>>,
     pub display_map: Vec<Vec<String>>,
+    pub explored: usize,
+    pub path_len: usize,
+    pub solution_cost: usize,
 }
 impl Map {
     pub fn create(file_path: &String) -> Result<Map, Box<dyn Error>> {
@@ -27,7 +30,10 @@ impl Map {
             .parse::<usize>()
             .unwrap();
         let mut map =
-            vec![vec![Cell::new(' ', (0, 0), None, false, None, usize::MAX); width]; height];
+            vec![
+                vec![Cell::new(' ', (0, 0), None, false, None, usize::MAX, usize::MAX); width];
+                height
+            ];
         let mut chars: std::str::Chars;
         //populate map with correct characters and coordinates for each cell
         for h in 0..height {
@@ -38,11 +44,17 @@ impl Map {
             }
         }
         let display_map = vec![vec![String::from(" "); width * 2]; height * 2];
+        let explored: usize = 0;
+        let path_len = 0;
+        let solution_cost = 0;
         Ok(Map {
             width,
             height,
             map,
             display_map,
+            explored,
+            path_len,
+            solution_cost,
         })
     }
     pub fn get(&mut self, point: &(usize, usize)) -> &mut Cell {
@@ -78,7 +90,7 @@ impl Map {
     pub fn set_cell_costs(&mut self) -> () {
         self.map.iter_mut().for_each(|row| {
             row.iter_mut().for_each(|cell| {
-                cell.cost = match cell.value {
+                cell.weight = match cell.value {
                     'R' => 1,
                     'f' => 2,
                     'F' => 4,
@@ -165,13 +177,14 @@ impl Map {
                 .join("\n")
         );
         println!("------------------------");
-        println!("Cells explored: {}", self.get_explored_cells());
+        println!("Cells explored: {}", self.explored);
+        println!("Path cost: {}", self.solution_cost);
     }
     pub fn get_explored_cells(&self) -> usize {
         self.map
             .iter()
             .flatten()
-            .filter(|cell| cell.cost != usize::MAX)
+            .filter(|cell| cell.weight != usize::MAX)
             .count()
     }
 }

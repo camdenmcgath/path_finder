@@ -10,10 +10,15 @@ use std::process;
 
 //TODO: efficiency upgrades: remove in path, remove direction field, check set_path function
 //TODO: handle edge cases (coords out of bounds on map), remove redundant calculations
+//TODO: refactor grid read in to initialize cost to usize::MAX for water, normal number for
+//other based on character, and store a travel_cost value intialized to usize::MAX
+//TODO: calculate path direction without storing in field, merge config and map
+
+//Two ways to improve heuristic algorithms: change methods (Beam search, etc.), change heuristic function
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let config = Config::build(&args).unwrap_or_else(|err| {
+    //let args: Vec<String> = env::args().collect();
+    let config = Config::build(env::args()).unwrap_or_else(|err| {
         println!("Problem parsing arguments: {err}");
         process::exit(1);
     });

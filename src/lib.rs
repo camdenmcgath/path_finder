@@ -1,8 +1,8 @@
-use searches::breadth_first::breadth_first_search;
+use searches::{
+    breadth_first::breadth_first, dijkstra::dijkstra, iterative_deepening::iterative_deepening,
+};
 use std::error::Error;
 use structure::map::Map;
-
-use crate::searches::djikstra::djikstra_search;
 mod searches;
 mod structure;
 
@@ -15,20 +15,31 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn build(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 6 {
-            return Err("Not enough arguments!");
-        }
-        let file_path = args[1].clone();
-        let start = (
-            args[2].clone().parse::<usize>().unwrap(),
-            args[3].clone().parse::<usize>().unwrap(),
-        );
-        let goal = (
-            args[4].clone().parse::<usize>().unwrap(),
-            args[5].clone().parse::<usize>().unwrap(),
-        );
-        let search_flag = args[6].clone();
+    pub fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
+        args.next();
+
+        let file_path = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a file path"),
+        };
+        let start = match (args.next(), args.next()) {
+            (Some(arg), Some(arg2)) => (
+                arg.parse::<usize>().unwrap(),
+                arg2.parse::<usize>().unwrap(),
+            ),
+            _ => return Err("Didn't get start coordinates"),
+        };
+        let goal = match (args.next(), args.next()) {
+            (Some(arg), Some(arg2)) => (
+                arg.parse::<usize>().unwrap(),
+                arg2.parse::<usize>().unwrap(),
+            ),
+            _ => return Err("Didn't get goal coordinates"),
+        };
+        let search_flag = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Search flag not found"),
+        };
 
         Ok(Config {
             file_path,
@@ -44,7 +55,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let mut map = Map::create(&config.file_path)?;
     match config.search_flag.as_str() {
         "-b" => {
-            if let Some(point) = breadth_first_search(&config, &mut map) {
+            if let Some(point) = breadth_first(&config, &mut map) {
                 map.set_path(point, &config);
                 map.print_path();
             } else {
@@ -52,14 +63,21 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             }
         }
         "-l" => {
-            if let Some(point) = djikstra_search(&config, &mut map) {
+            if let Some(point) = dijkstra(&config, &mut map) {
                 map.set_path(point, &config);
                 map.print_path();
             } else {
                 println!("Oops");
             }
         }
-        "-i" => println!("Iterative deepening not yet implemented"),
+        "-i" => {
+            if let Some(point) = iterative_deepening(&config, &mut map) {
+                map.set_path(point, &config);
+                map.print_path();
+            } else {
+                println!("Oops");
+            }
+        }
         "-a1" => println!("A* heurstic version 1 not yet implemented"),
         "-a2" => println!("A* huritic version 2 not yet implemented"),
         _ => println!("Please pass one of -b, -l, -i, -a1, -a2 to specify search"),
