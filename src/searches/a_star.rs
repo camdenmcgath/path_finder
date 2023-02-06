@@ -1,9 +1,10 @@
-use crate::structure::{cell::Cell, cost_point::CostPoint, map::Map};
+//manahtten distance A* search
+
+use crate::structure::{cell::Cell, map::Map};
 use std::collections::{BinaryHeap, HashMap, VecDeque};
 
-//TODO: add correct output of path length, cost, cells explored
-pub fn dijkstra(map: &mut Map) -> Option<VecDeque<(usize, usize)>> {
-    println!("Lowest Cost Search Using Djikstra's Algorithm:\n-----------------------");
+pub fn a_star_manhatten(map: &mut Map) -> Option<VecDeque<(usize, usize)>> {
+    println!("A* Search With Manahtten Distance Heuristic:\n-----------------------");
     let mut visited = HashMap::<(usize, usize), usize>::new();
     let mut pq = BinaryHeap::<Cell>::new();
     let start = map.start;
@@ -18,6 +19,7 @@ pub fn dijkstra(map: &mut Map) -> Option<VecDeque<(usize, usize)>> {
         }
         for coords in map.expand(&point.state) {
             let mut cell = map.get(&coords);
+            let estimated_total = cell.path_cost + manahtten_dist(&point.state, &cell.state);
             if !visited.contains_key(&coords)
                 || visited[&point.state] + cell.weight < visited[&coords]
             {
@@ -29,4 +31,8 @@ pub fn dijkstra(map: &mut Map) -> Option<VecDeque<(usize, usize)>> {
         }
     }
     None
+}
+
+fn manahtten_dist(start: &(usize, usize), goal: &(usize, usize)) -> usize {
+    start.0.abs_diff(goal.0) + start.1.abs_diff(goal.1)
 }

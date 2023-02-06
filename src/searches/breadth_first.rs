@@ -1,38 +1,28 @@
 use crate::structure::cell;
-use crate::structure::{cell::Cell, direction::Direction, map::Map};
-use crate::Config;
+use crate::structure::{cell::Cell, map::Map};
 use std::collections::VecDeque;
 //fil contains logic for breadth first search
 
-pub fn breadth_first(params: &Config, map: &mut Map) -> Option<(usize, usize)> {
+pub fn breadth_first(map: &mut Map) -> Option<VecDeque<(usize, usize)>> {
     println!("Breadth First Search:\n-----------------------");
-    let mut point = params.start;
-    if params.goal == point {
-        return Some(point);
+    let mut point = map.start;
+    if map.goal == point {
+        return Some(map.set_path(point));
     }
     let mut expand_points: VecDeque<(usize, usize)> = VecDeque::new();
-    map.get(&point).weight = 1;
+    map.get(&point).path_cost = 1;
     expand_points.push_back(point);
     while !expand_points.is_empty() {
         point = expand_points.pop_front()?;
         for expand_pt in map.expand(&point) {
-            if map.get(&expand_pt).weight != 1 {
-                map.get(&expand_pt).weight = 1;
-                map.get(&expand_pt).prev = Some((point.0, point.1));
-                map.get(&expand_pt).prev_direction = map.find_prev_direction(&point, &expand_pt);
+            let mut cell = map.get(&expand_pt);
+            if cell.path_cost != 1 {
+                cell.path_cost = 1;
+                cell.prev = Some((point.0, point.1));
                 expand_points.push_back(expand_pt);
             }
-            if params.goal == expand_pt {
-                let mut explored = 0;
-                map.map.iter().for_each(|row| {
-                    row.iter().for_each(|cell| {
-                        if cell.weight == 1 {
-                            explored += 1;
-                        }
-                    })
-                });
-                map.explored = explored;
-                return Some(expand_pt);
+            if map.goal == expand_pt {
+                return Some(map.set_path(expand_pt));
             }
         }
     }

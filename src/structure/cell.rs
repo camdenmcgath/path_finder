@@ -1,39 +1,46 @@
-use crate::structure::direction::Direction;
-
-#[derive(Clone)]
+use std::cmp::{Ord, Ordering, PartialOrd};
+#[derive(Clone, PartialEq, Eq)]
 pub struct Cell {
-    pub value: char,
     pub state: (usize, usize),
     pub prev: Option<(usize, usize)>,
-    pub in_path: bool,
-    pub prev_direction: Option<Direction>,
     pub weight: usize,
     pub path_cost: usize,
+    estimated_cost: usize,
 }
 impl Cell {
     pub fn new(
-        value: char,
         state: (usize, usize),
         prev: Option<(usize, usize)>,
-        in_path: bool,
-        prev_direction: Option<Direction>,
         weight: usize,
         path_cost: usize,
+        estimated_cost: usize,
     ) -> Cell {
         Cell {
-            value,
             state,
             prev,
-            in_path,
-            prev_direction,
             weight,
             path_cost,
+            estimated_cost,
         }
     }
-    pub fn set_val(&mut self, val: char) -> () {
-        self.value = val;
+}
+
+impl Ord for Cell {
+    fn cmp(&self, other: &Self) -> Ordering {
+        let estimated_cmp = other.estimated_cost.cmp(&self.estimated_cost);
+        match estimated_cmp {
+            Ordering::Equal => other.path_cost.cmp(&self.path_cost),
+            _ => estimated_cmp,
+        }
     }
-    pub fn set_state(&mut self, coords: (usize, usize)) -> () {
-        self.state = coords;
+}
+
+impl PartialOrd for Cell {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if self.estimated_cost != other.estimated_cost {
+            return Some(other.estimated_cost.cmp(&self.estimated_cost));
+        } else {
+            return Some(other.path_cost.cmp(&self.path_cost));
+        }
     }
 }
