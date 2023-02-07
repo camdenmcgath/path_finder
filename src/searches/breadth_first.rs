@@ -1,5 +1,4 @@
-use crate::structure::cell;
-use crate::structure::{cell::Cell, map::Map};
+use crate::structure::map::Map;
 use std::collections::VecDeque;
 //fil contains logic for breadth first search
 

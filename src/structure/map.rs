@@ -1,8 +1,7 @@
 use crate::structure::cell::Cell;
+use colored::Colorize;
 use std::collections::VecDeque;
-use std::fs;
-
-//file contains map and cell structs
+use std::fs::{self};
 pub struct Map {
     pub file_path: String,
     pub start: (usize, usize),
@@ -12,6 +11,7 @@ pub struct Map {
     pub height: usize,
     pub map: Vec<Vec<Cell>>,
     pub display_map: Vec<Vec<String>>,
+    pub solution_cost: usize,
 }
 impl Map {
     pub fn create(mut args: impl Iterator<Item = String>) -> Result<Map, &'static str> {
@@ -54,31 +54,36 @@ impl Map {
             .expect("Error parsing dimensions from file.")
             .parse::<usize>()
             .unwrap();
-        //initialize map
-        let mut map =
-            vec![vec![Cell::new((0, 0), None, usize::MAX, usize::MAX, usize::MAX); width]; height];
-        //initialize map for display
-        let mut display_map = vec![vec![String::from(" "); width * 2]; height * 2];
+        let mut map = Vec::new();
+        let mut display_map = Vec::new();
         let mut chars: std::str::Chars;
-        //set map values based on input grid
         for h in 0..height {
+            let mut row = Vec::new();
+            let mut display_row = Vec::new();
             chars = file_lines[h + 1].chars();
             for w in 0..width {
                 let letter = chars.next().expect("Error parsing map characters.");
-                display_map[h * 2][w * 2] = letter.to_string();
-                map[h][w].state = ((w).try_into().unwrap(), h.try_into().unwrap());
-                map[h][w].weight = match letter {
-                    'R' => 1,
-                    'f' => 2,
-                    'F' => 4,
-                    'h' => 5,
-                    'r' => 7,
-                    'M' => 10,
-                    _ => usize::MAX,
-                };
+                row.push(Cell::new(
+                    (w, h),
+                    None,
+                    match letter {
+                        'R' => 1,
+                        'f' => 2,
+                        'F' => 4,
+                        'h' => 5,
+                        'r' => 7,
+                        'M' => 10,
+                        _ => usize::MAX,
+                    },
+                    usize::MAX,
+                    usize::MAX,
+                ));
+                display_row.push(String::from(letter.to_string()));
             }
+            map.push(row);
+            display_map.push(display_row);
         }
-
+        let solution_cost: usize = 0;
         Ok(Map {
             file_path,
             start,
@@ -88,6 +93,7 @@ impl Map {
             height,
             map,
             display_map,
+            solution_cost,
         })
     }
     pub fn get(&mut self, point: &(usize, usize)) -> &mut Cell {
@@ -119,30 +125,14 @@ impl Map {
         let mut solution_path = VecDeque::<(usize, usize)>::new();
         let (goal_x, goal_y) = point;
         let mut path_cell = &mut self.map[goal_y][goal_x];
-        //path_cell.in_path = true;
+        self.solution_cost = path_cell.weight;
         solution_path.push_back(path_cell.state);
         while path_cell.state != self.start {
             if let Some((x, y)) = path_cell.prev {
                 solution_path.push_back((x, y));
-                let (origin_x, origin_y) = (x, y);
-                let (point_x, point_y) = path_cell.state;
-                //moved up
-                if origin_y > 0 && point_y == origin_y - 1 {
-                    self.display_map[(2 * y) - 1][2 * x] = String::from("|");
-                }
-                //moved right
-                else if origin_x + 1 < self.width && point_x == origin_x + 1 {
-                    self.display_map[2 * y][(2 * x) + 1] = String::from("_");
-                }
-                //moved down
-                else if origin_y + 1 < self.height && point_y == origin_y + 1 {
-                    self.display_map[(2 * y) + 1][2 * x] = String::from("|");
-                }
-                //moved left
-                else if origin_x > 0 && point_x == origin_x - 1 {
-                    self.display_map[2 * y][(2 * x) - 1] = String::from("_");
-                }
+                self.display_map[y][x] = self.display_map[y][x].green().bold().to_string();
                 path_cell = &mut self.map[y][x];
+                self.solution_cost += path_cell.weight;
             } else {
                 path_cell.prev = None;
             };
@@ -150,41 +140,28 @@ impl Map {
         solution_path
     }
     pub fn print_path(&mut self) -> () {
-        //self.set_display(path);
-        println!(
+        let mut explored = 0;
+        print!(
             "{}",
-            self.display_map
+            self.map
                 .iter()
-                .map(|row| {
-                    row.iter()
-                        .map(|val| val.to_string())
-                        .collect::<Vec<String>>()
-                        .join("")
-                })
+                .map(|row| row
+                    .iter()
+                    .map(|cell| if cell.path_cost != usize::MAX {
+                        explored += 1;
+                        self.display_map[cell.state.1][cell.state.0]
+                            .truecolor(105, 105, 105)
+                            .to_string()
+                    } else {
+                        self.display_map[cell.state.1][cell.state.0].to_string()
+                    })
+                    .collect::<Vec<String>>()
+                    .join(" "))
                 .collect::<Vec<String>>()
                 .join("\n")
         );
-        println!("------------------------");
-        println!("Cells explored: {}", self.get_explored_cells());
-        println!("Path cost: {}", self.get_solution_cost());
-    }
-    pub fn get_explored_cells(&self) -> usize {
-        self.map
-            .iter()
-            .flatten()
-            .filter(|cell| cell.path_cost != usize::MAX)
-            .count()
-    }
-    pub fn get_solution_cost(&self) -> usize {
-        let mut solution_cost: usize = 0;
-        let mut cell = &self.map[self.goal.1][self.goal.0];
-        while cell.state != self.start {
-            solution_cost += cell.weight;
-            if let Some((x, y)) = cell.prev {
-                cell = &self.map[y][x];
-            } else {
-            }
-        }
-        solution_cost
+        println!("\n------------------------");
+        println!("Cells explored: {}", explored);
+        println!("Path cost: {}", self.solution_cost);
     }
 }

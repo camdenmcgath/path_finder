@@ -1,5 +1,7 @@
+use crate::searches::a_star::a_start_manhatten_weighted;
 use crate::searches::{
-    breadth_first::breadth_first, dijkstra::dijkstra, iterative_deepening::iterative_deepening,
+    a_star::a_star_manhatten, breadth_first::breadth_first, dijkstra::dijkstra,
+    iterative_deepening::iterative_deepening,
 };
 use crate::structure::map::Map;
 use std::env;
@@ -41,28 +43,40 @@ fn run(map: &mut Map) -> Result<(), Box<dyn Error>> {
     println!("{}", std::env::current_dir().unwrap().display());
     match map.search_flag.as_str() {
         "-b" => {
-            if let Some(path) = breadth_first(map) {
+            if let Some(_) = breadth_first(map) {
                 map.print_path();
             } else {
                 println!("Goal not found...");
             }
         }
         "-l" => {
-            if let Some(path) = dijkstra(map) {
+            if let Some(_) = dijkstra(map) {
                 map.print_path();
             } else {
                 println!("Oops");
             }
         }
         "-i" => {
-            if let Some(path) = iterative_deepening(map) {
+            if let Some(_) = iterative_deepening(map) {
                 map.print_path();
             } else {
                 println!("Oops");
             }
         }
-        "-a1" => println!("A* heurstic version 1 not yet implemented"),
-        "-a2" => println!("A* huritic version 2 not yet implemented"),
+        "-a1" => {
+            if let Some(_) = a_star_manhatten(map) {
+                map.print_path();
+            } else {
+                println!("Oops");
+            }
+        }
+        "-a2" => {
+            if let Some(_) = a_start_manhatten_weighted(map) {
+                map.print_path();
+            } else {
+                println!("Oops");
+            }
+        }
         _ => println!("Please pass one of -b, -l, -i, -a1, -a2 to specify search"),
     }
 

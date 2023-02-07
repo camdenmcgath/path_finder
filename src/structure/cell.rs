@@ -5,7 +5,7 @@ pub struct Cell {
     pub prev: Option<(usize, usize)>,
     pub weight: usize,
     pub path_cost: usize,
-    estimated_cost: usize,
+    pub estimated_cost: usize,
 }
 impl Cell {
     pub fn new(

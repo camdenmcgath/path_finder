@@ -1,4 +1,4 @@
-use crate::structure::{cell::Cell, cost_point::CostPoint, map::Map};
+use crate::structure::{cell::Cell, map::Map};
 use std::collections::{BinaryHeap, HashMap, VecDeque};
 
 //TODO: add correct output of path length, cost, cells explored
