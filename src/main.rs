@@ -1,6 +1,7 @@
-use crate::searches::a_star::a_start_manhatten_weighted;
 use crate::searches::{
-    a_star::a_star_manhatten, breadth_first::breadth_first, dijkstra::dijkstra,
+    a_star::{a_star_manhatten, a_star_manhatten_weighted},
+    breadth_first::breadth_first,
+    dijkstra::dijkstra,
     iterative_deepening::iterative_deepening,
 };
 use crate::structure::map::Map;
@@ -14,14 +15,6 @@ pub mod structure;
 //main.rs contains the command line arg parsing and initiates the program
 //lib.rs contains the code to run the main part of the program
 //the breadth first search code is found in the searches module
-
-//TODO: efficiency upgrades: remove in path, remove direction field, check set_path function
-//TODO: handle edge cases (coords out of bounds on map), remove redundant calculations
-//TODO: refactor grid read in to initialize cost to usize::MAX for water, normal number for
-//other based on character, and store a travel_cost value intialized to usize::MAX
-//TODO: calculate path direction without storing in field, merge config and map
-
-//Two ways to improve heuristic algorithms: change methods (Beam search, etc.), change heuristic function
 
 fn main() {
     //let args: Vec<String> = env::args().collect();
@@ -53,28 +46,49 @@ fn run(map: &mut Map) -> Result<(), Box<dyn Error>> {
             if let Some(_) = dijkstra(map) {
                 map.print_path();
             } else {
-                println!("Oops");
+                println!("Goal not found...");
             }
         }
         "-i" => {
             if let Some(_) = iterative_deepening(map) {
                 map.print_path();
             } else {
-                println!("Oops");
+                println!("Goal not found...");
             }
         }
         "-a1" => {
             if let Some(_) = a_star_manhatten(map) {
                 map.print_path();
             } else {
-                println!("Oops");
+                println!("Goal not found...");
             }
         }
         "-a2" => {
-            if let Some(_) = a_start_manhatten_weighted(map) {
+            if let Some(_) = a_star_manhatten_weighted(map, 2) {
                 map.print_path();
             } else {
-                println!("Oops");
+                println!("Goal ot found...");
+            }
+        }
+        "-a3" => {
+            if let Some(_) = a_star_manhatten_weighted(map, 3) {
+                map.print_path();
+            } else {
+                println!("Goal ot found...");
+            }
+        }
+        "-a4" => {
+            if let Some(_) = a_star_manhatten_weighted(map, 4) {
+                map.print_path();
+            } else {
+                println!("Goal ot found...");
+            }
+        }
+        "-a5" => {
+            if let Some(_) = a_star_manhatten_weighted(map, 5) {
+                map.print_path();
+            } else {
+                println!("Goal ot found...");
             }
         }
         _ => println!("Please pass one of -b, -l, -i, -a1, -a2 to specify search"),

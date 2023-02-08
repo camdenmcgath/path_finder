@@ -1,5 +1,4 @@
 use crate::structure::cell::Cell;
-use colored::Colorize;
 use std::collections::VecDeque;
 use std::fs::{self};
 pub struct Map {
@@ -12,6 +11,8 @@ pub struct Map {
     pub map: Vec<Vec<Cell>>,
     pub display_map: Vec<Vec<String>>,
     pub solution_cost: usize,
+    pub path_dist: usize,
+    pub exec_time: u128,
 }
 impl Map {
     pub fn create(mut args: impl Iterator<Item = String>) -> Result<Map, &'static str> {
@@ -84,6 +85,8 @@ impl Map {
             display_map.push(display_row);
         }
         let solution_cost: usize = 0;
+        let exec_time = 0;
+        let path_dist = 0;
         Ok(Map {
             file_path,
             start,
@@ -94,6 +97,8 @@ impl Map {
             map,
             display_map,
             solution_cost,
+            path_dist,
+            exec_time,
         })
     }
     pub fn get(&mut self, point: &(usize, usize)) -> &mut Cell {
@@ -125,14 +130,16 @@ impl Map {
         let mut solution_path = VecDeque::<(usize, usize)>::new();
         let (goal_x, goal_y) = point;
         let mut path_cell = &mut self.map[goal_y][goal_x];
+        self.display_map[goal_y][goal_x] = String::from("P");
         self.solution_cost = path_cell.weight;
         solution_path.push_back(path_cell.state);
         while path_cell.state != self.start {
             if let Some((x, y)) = path_cell.prev {
                 solution_path.push_back((x, y));
-                self.display_map[y][x] = self.display_map[y][x].green().bold().to_string();
+                self.display_map[y][x] = String::from("P");
                 path_cell = &mut self.map[y][x];
                 self.solution_cost += path_cell.weight;
+                self.path_dist += 1;
             } else {
                 path_cell.prev = None;
             };
@@ -147,13 +154,15 @@ impl Map {
                 .iter()
                 .map(|row| row
                     .iter()
-                    .map(|cell| if cell.path_cost != usize::MAX {
-                        explored += 1;
-                        self.display_map[cell.state.1][cell.state.0]
-                            .truecolor(105, 105, 105)
-                            .to_string()
-                    } else {
-                        self.display_map[cell.state.1][cell.state.0].to_string()
+                    .map(|cell| {
+                        if cell.path_cost != usize::MAX
+                            && self.display_map[cell.state.1][cell.state.0] != "P"
+                        {
+                            explored += 1;
+                            String::from("~")
+                        } else {
+                            self.display_map[cell.state.1][cell.state.0].to_string()
+                        }
                     })
                     .collect::<Vec<String>>()
                     .join(" "))
@@ -161,7 +170,9 @@ impl Map {
                 .join("\n")
         );
         println!("\n------------------------");
-        println!("Cells explored: {}", explored);
-        println!("Path cost: {}", self.solution_cost);
+        println!("Cells explored (~): {}", explored + self.path_dist);
+        println!("Path distance (size): {}", self.path_dist);
+        println!("Path (P) cost: {}", self.solution_cost);
+        println!("Execution time (nanoseconds): {}", self.exec_time);
     }
 }

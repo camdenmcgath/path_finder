@@ -1,5 +1,5 @@
 use std::cmp::{Ord, Ordering, PartialOrd};
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Debug, Copy)]
 pub struct Cell {
     pub state: (usize, usize),
     pub prev: Option<(usize, usize)>,

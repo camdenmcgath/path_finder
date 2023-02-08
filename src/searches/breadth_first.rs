@@ -4,8 +4,10 @@ use std::collections::VecDeque;
 
 pub fn breadth_first(map: &mut Map) -> Option<VecDeque<(usize, usize)>> {
     println!("Breadth First Search:\n-----------------------");
+    let instance = std::time::Instant::now();
     let mut point = map.start;
     if map.goal == point {
+        map.exec_time = instance.elapsed().as_nanos();
         return Some(map.set_path(point));
     }
     let mut expand_points: VecDeque<(usize, usize)> = VecDeque::new();
@@ -21,6 +23,7 @@ pub fn breadth_first(map: &mut Map) -> Option<VecDeque<(usize, usize)>> {
                 expand_points.push_back(expand_pt);
             }
             if map.goal == expand_pt {
+                map.exec_time = instance.elapsed().as_nanos();
                 return Some(map.set_path(expand_pt));
             }
         }
