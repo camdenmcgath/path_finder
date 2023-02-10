@@ -39,7 +39,7 @@ fn manahtten_dist(start: &(usize, usize), goal: &(usize, usize)) -> usize {
     start.0.abs_diff(goal.0) + start.1.abs_diff(goal.1)
 }
 
-pub fn a_star_manhatten_weighted(map: &mut Map, weight: usize) -> Option<VecDeque<(usize, usize)>> {
+pub fn a_star_manhatten_weighted(map: &mut Map, weight: usize) -> Option<()> {
     println!("A* Search With Weighted Manhatten Heuristic:\n-----------------------");
     let instance = std::time::Instant::now();
     let mut pq = BinaryHeap::<Cell>::new();
@@ -51,7 +51,8 @@ pub fn a_star_manhatten_weighted(map: &mut Map, weight: usize) -> Option<VecDequ
     while let Some(point) = pq.pop() {
         if map.goal == point.state {
             map.exec_time = instance.elapsed().as_nanos();
-            return Some(map.set_path(point.state));
+            map.set_path(point.state);
+            return Some(());
         }
         let goal = map.goal;
         for coords in map.expand(&point.state) {

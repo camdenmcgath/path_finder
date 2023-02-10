@@ -10,14 +10,8 @@ use std::error::Error;
 use std::process;
 pub mod searches;
 pub mod structure;
-//Program to perform a breadth first search on a map of charcters
-//given starting and goal coordinates
-//main.rs contains the command line arg parsing and initiates the program
-//lib.rs contains the code to run the main part of the program
-//the breadth first search code is found in the searches module
 
 fn main() {
-    //let args: Vec<String> = env::args().collect();
     let mut map = Map::create(env::args()).unwrap_or_else(|err| {
         println!("Problem parsing arguments: {err}");
         process::exit(1);
@@ -49,7 +43,7 @@ fn run(map: &mut Map) -> Result<(), Box<dyn Error>> {
                 println!("Goal not found...");
             }
         }
-        "-i" => {
+        "-i" | "-ia" => {
             if let Some(_) = iterative_deepening(map) {
                 map.print_path();
             } else {

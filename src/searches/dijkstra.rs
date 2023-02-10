@@ -1,7 +1,7 @@
 use crate::structure::{cell::Cell, map::Map};
-use std::collections::{BinaryHeap, VecDeque};
+use std::collections::BinaryHeap;
 //TODO: add correct output of path length, cost, cells explored
-pub fn dijkstra(map: &mut Map) -> Option<VecDeque<(usize, usize)>> {
+pub fn dijkstra(map: &mut Map) -> Option<()> {
     println!("Lowest Cost Search Using Djikstra's Algorithm:\n-----------------------");
     let instance = std::time::Instant::now();
     let mut pq = BinaryHeap::<Cell>::new();
@@ -13,7 +13,8 @@ pub fn dijkstra(map: &mut Map) -> Option<VecDeque<(usize, usize)>> {
     while let Some(point) = pq.pop() {
         if map.goal == point.state {
             map.exec_time = instance.elapsed().as_nanos();
-            return Some(map.set_path(point.state));
+            map.set_path(point.state);
+            return Some(());
         }
         for coords in map.expand(&point.state) {
             let mut cell = map.get(&coords);

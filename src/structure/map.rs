@@ -1,6 +1,7 @@
 use crate::structure::cell::Cell;
 use std::collections::VecDeque;
 use std::fs::{self};
+use std::usize;
 pub struct Map {
     pub file_path: String,
     pub start: (usize, usize),
@@ -145,6 +146,13 @@ impl Map {
             };
         }
         solution_path
+    }
+    pub fn set_path_stack(&mut self, stack: &mut Vec<(usize, usize)>) -> () {
+        while let Some(point) = stack.pop() {
+            self.display_map[point.1][point.0] = String::from("P");
+            self.solution_cost += self.map[point.1][point.0].weight;
+            self.path_dist += 1;
+        }
     }
     pub fn print_path(&mut self) -> () {
         let mut explored = 0;

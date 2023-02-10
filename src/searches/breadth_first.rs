@@ -2,13 +2,14 @@ use crate::structure::map::Map;
 use std::collections::VecDeque;
 //fil contains logic for breadth first search
 
-pub fn breadth_first(map: &mut Map) -> Option<VecDeque<(usize, usize)>> {
+pub fn breadth_first(map: &mut Map) -> Option<()> {
     println!("Breadth First Search:\n-----------------------");
     let instance = std::time::Instant::now();
     let mut point = map.start;
     if map.goal == point {
         map.exec_time = instance.elapsed().as_nanos();
-        return Some(map.set_path(point));
+        map.set_path(point);
+        return Some(());
     }
     let mut expand_points: VecDeque<(usize, usize)> = VecDeque::new();
     map.get(&point).path_cost = 1;
@@ -24,7 +25,8 @@ pub fn breadth_first(map: &mut Map) -> Option<VecDeque<(usize, usize)>> {
             }
             if map.goal == expand_pt {
                 map.exec_time = instance.elapsed().as_nanos();
-                return Some(map.set_path(expand_pt));
+                map.set_path(expand_pt);
+                return Some(());
             }
         }
     }
